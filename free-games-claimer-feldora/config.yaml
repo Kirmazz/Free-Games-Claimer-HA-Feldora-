@@ -1,5 +1,5 @@
 name: Free Games Claimer (feldorn)
-version: "<TAG>"          # = la release feldorn, ex "2.8.55" (voir /releases)
+version: "2.11.9"          # = la release feldorn, ex "2.8.55" (voir /releases)
 slug: free_games_claimer_feldorn
 description: Réclame les jeux gratuits (Epic, Steam, Prime, GOG) — panneau + noVNC
 url: https://github.com/feldorn/free-games-claimer
