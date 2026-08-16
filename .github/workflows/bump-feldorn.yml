@@ -1,19 +1,21 @@
 name: Bump feldorn
 on:
   schedule:
-    - cron: "0 */6 * * *"   # toutes les 6 h
-  workflow_dispatch: {}       # + bouton "Run workflow" manuel
+    - cron: "0 */6 * * *"
+  workflow_dispatch: {}
 permissions:
   contents: write
 jobs:
   bump:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Bump si nouvelle release feldorn
         run: |
           set -euo pipefail
-          TAG=$(curl -fsSL https://api.github.com/repos/feldorn/free-games-claimer/releases/latest | jq -r .tag_name)
+          TAG=$(gh api repos/feldorn/free-games-claimer/releases/latest --jq .tag_name)
           VERSION="${TAG#v}"
           CONFIG=$(find . -mindepth 2 -name config.yaml | head -n1)
           DIR=$(dirname "$CONFIG")
@@ -21,7 +23,6 @@ jobs:
           if [ "$VERSION" = "$CURRENT" ]; then
             echo "Déjà à jour ($CURRENT)"; exit 0
           fi
-          # On préserve le préfixe de tag du Dockerfile (v ou non), tel qu'il marche déjà
           CURTAG=$(grep -oE 'free-games-claimer:[^[:space:]"]+' "$DIR/Dockerfile" | sed 's/.*://')
           PREFIX=""; case "$CURTAG" in v*) PREFIX="v";; esac
           NEWTAG="${PREFIX}${VERSION}"
