@@ -7,10 +7,10 @@ arch:
   - aarch64
   - amd64
 init: false
-ingress: true
+ingress: false
 ingress_port: 7080
-panel_icon: mdi:gift-outline
-panel_title: Free Games
+#panel_icon: mdi:gift-outline
+#panel_title: Free Games
 ports:
   6080/tcp: 6080
   7080/tcp: 7080
