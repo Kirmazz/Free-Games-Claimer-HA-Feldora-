@@ -1,8 +1,12 @@
-FROM ghcr.io/feldorn/free-games-claimer:2.11.9
+FROM ghcr.io/feldorn/free-games-claimer:<TAG>
 
-# Persistance : le dossier data de l'app pointe vers /data
-# (/data = stockage add-on persistant + inclus dans les sauvegardes HA).
-# Vérifié : l'image amont ne déclare aucun VOLUME, donc le lien est sûr.
+# Persistance : le dossier data de l'app pointe vers /data (persistant + sauvegardé par HA)
 RUN rm -rf /fgc/data && ln -s /data /fgc/data
 
-# On n'écrase NI ENTRYPOINT NI CMD : c'est le panel feldorn qui gère le scheduler.
+# Injection des options de l'add-on HA comme variables d'environnement
+COPY hass-init.sh /usr/local/bin/hass-init.sh
+RUN chmod +x /usr/local/bin/hass-init.sh
+
+# On enveloppe l'entrypoint : options -> env, puis entrypoint feldorn d'origine
+# (qui lance lui-même le panneau et ignore le CMD, donc rien à re-déclarer).
+ENTRYPOINT ["/usr/local/bin/hass-init.sh"]
