@@ -1,0 +1,33 @@
+name: Bump feldorn
+on:
+  schedule:
+    - cron: "0 */6 * * *"   # toutes les 6 h
+  workflow_dispatch: {}       # + bouton "Run workflow" manuel
+permissions:
+  contents: write
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump si nouvelle release feldorn
+        run: |
+          set -euo pipefail
+          TAG=$(curl -fsSL https://api.github.com/repos/feldorn/free-games-claimer/releases/latest | jq -r .tag_name)
+          VERSION="${TAG#v}"
+          CONFIG=$(find . -mindepth 2 -name config.yaml | head -n1)
+          DIR=$(dirname "$CONFIG")
+          CURRENT=$(grep -E '^version:' "$CONFIG" | sed -E 's/^version:[[:space:]]*"?([^"]+)"?.*/\1/')
+          if [ "$VERSION" = "$CURRENT" ]; then
+            echo "Déjà à jour ($CURRENT)"; exit 0
+          fi
+          # On préserve le préfixe de tag du Dockerfile (v ou non), tel qu'il marche déjà
+          CURTAG=$(grep -oE 'free-games-claimer:[^[:space:]"]+' "$DIR/Dockerfile" | sed 's/.*://')
+          PREFIX=""; case "$CURTAG" in v*) PREFIX="v";; esac
+          NEWTAG="${PREFIX}${VERSION}"
+          sed -i -E "s/^version:.*/version: \"${VERSION}\"/" "$CONFIG"
+          sed -i -E "s#(free-games-claimer:)[^[:space:]\"]+#\1${NEWTAG}#" "$DIR/Dockerfile"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore: bump feldorn $CURRENT -> $VERSION"
+          git push
