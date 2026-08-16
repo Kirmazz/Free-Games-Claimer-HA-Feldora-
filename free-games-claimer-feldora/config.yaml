@@ -13,7 +13,9 @@ ports:
 ports_description:
   6080/tcp: noVNC (connexions / captchas)
   7080/tcp: Panneau de contrôle
-options: {}
+options:
+  PANEL_PASSWORD: ""
+  VNC_PASSWORD: ""
 schema:
   PANEL_PASSWORD: password?
   VNC_PASSWORD: password?
