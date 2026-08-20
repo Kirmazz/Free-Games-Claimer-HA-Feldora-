@@ -1,0 +1,21 @@
+name: Free Games Claimer (feldorn)
+version: "2.11.9"
+slug: free_games_claimer_feldorn
+description: Réclame les jeux gratuits (Epic, Steam, Prime, GOG) — panneau + noVNC
+url: https://github.com/feldorn/free-games-claimer
+arch:
+  - aarch64
+  - amd64
+init: false
+ports:
+  6080/tcp: 6080
+  7080/tcp: 7080
+ports_description:
+  6080/tcp: noVNC (connexions / captchas)
+  7080/tcp: Panneau de contrôle
+options:
+  PANEL_PASSWORD: ""
+  VNC_PASSWORD: ""
+schema:
+  PANEL_PASSWORD: password?
+  VNC_PASSWORD: password?
