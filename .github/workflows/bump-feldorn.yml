@@ -1,20 +1,30 @@
 name: Bump feldorn
+
 on:
   schedule:
     - cron: "0 */6 * * *"
   workflow_dispatch: {}
+
 permissions:
   contents: write
+
+concurrency:
+  group: bump-feldorn
+  cancel-in-progress: false
+
 jobs:
   bump:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
+
       - name: Bump si nouvelle version feldorn
         run: |
           set -euo pipefail
+          DIR="free-games-claimer-feldorn-fork"
+          CONFIG="$DIR/config.yaml"
 
           # feldorn ne publie pas de "releases" (404) -> on prend le plus haut tag semver
           TAG=$(gh api "repos/feldorn/free-games-claimer/tags?per_page=100" --jq '.[].name' \
@@ -25,18 +35,18 @@ jobs:
             echo "Version amont invalide, on arrete."; exit 1
           fi
 
-          CONFIG=$(find . -mindepth 2 -name config.yaml -print -quit)
-          DIR=$(dirname "$CONFIG")
-          CURRENT=$(grep -E '^version:' "$CONFIG" | sed -E 's/^version:[[:space:]]*"?([^"]+)"?.*/\1/')
+          CURRENT=$(grep -E '^version:' "$CONFIG" \
+                    | sed -E 's/^version:[[:space:]]*"?([^"]+)"?.*/\1/')
           echo "Add-on : version=$CURRENT  ($CONFIG)"
-
           if [ "$VERSION" = "$CURRENT" ]; then
             echo "Deja a jour."; exit 0
           fi
 
+          # Conserve le préfixe (v ou non) déjà présent sur le tag image du Dockerfile
           CURTAG=$(grep -oE 'free-games-claimer:[^[:space:]"]+' "$DIR/Dockerfile" | sed 's/.*://' || true)
           PREFIX=""; case "$CURTAG" in v*) PREFIX="v";; esac
           NEWTAG="${PREFIX}${VERSION}"
+
           sed -i -E "s/^version:.*/version: \"${VERSION}\"/" "$CONFIG"
           sed -i -E "s#(free-games-claimer:)[^[:space:]\"]+#\1${NEWTAG}#" "$DIR/Dockerfile"
           echo "Bump $CURRENT -> $VERSION (image: $NEWTAG)"
