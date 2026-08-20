@@ -28,3 +28,4 @@ schema:
   proxy_username: "str?"
   proxy_password: "password?"
   log_level: "list(debug|info|warning|error)?"
+webui: "http://[HOST]:[PORT:8191]/docs"
