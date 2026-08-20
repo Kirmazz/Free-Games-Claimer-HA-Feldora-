@@ -1,3 +1,3 @@
-Just for a personnal use vibe coded with Claude (and the original come from Feldorn, not Feldora, little error on my end).
+Little repository for personal Home Assistant App vibe coded with claude, with automation to keep the image source updated in HA.
 
-Feel free to use it or fork it.
+Use them freely ;)
