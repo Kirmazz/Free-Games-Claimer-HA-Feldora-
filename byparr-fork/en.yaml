@@ -1,0 +1,15 @@
+configuration:
+  proxy_server:
+    name: Proxy (optionnel)
+    description: >-
+      Proxy sortant au format protocol://host:port (ex. http://10.0.0.5:8888).
+      Laisser vide pour ne pas utiliser de proxy.
+  proxy_username:
+    name: Identifiant proxy (optionnel)
+    description: Nom d'utilisateur si le proxy demande une authentification.
+  proxy_password:
+    name: Mot de passe proxy (optionnel)
+    description: Mot de passe associé à l'identifiant proxy.
+  log_level:
+    name: Niveau de log
+    description: Verbosité des journaux Byparr.

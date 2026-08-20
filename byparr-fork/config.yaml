@@ -1,0 +1,30 @@
+name: Byparr
+version: "3.0.4"
+slug: byparr
+description: >-
+  Solveur Cloudflare / Turnstile compatible FlareSolverr — remplaçant de
+  FlareSolverr (Prowlarr/Jackett, vStream/Kodi, etc.)
+url: "https://github.com/ThePhaseless/Byparr"
+# ARM upstream = expérimental ; on ne publie que amd64 (ton mini-PC).
+# Tu peux tester en ajoutant "aarch64" ci-dessous, sans garantie.
+arch:
+  - amd64
+# L'image embarque tini comme init → on désactive l'init de HA.
+init: false
+startup: application
+# API exposée au LAN (vStream, *arr…). Retire ce bloc si tu ne veux
+# l'atteindre que depuis d'autres conteneurs du réseau interne HA.
+ports:
+  "8191/tcp": 8191
+ports_description:
+  "8191/tcp": API compatible FlareSolverr (/v1) et documentation (/docs)
+options:
+  proxy_server: ""
+  proxy_username: ""
+  proxy_password: ""
+  log_level: info
+schema:
+  proxy_server: "str?"
+  proxy_username: "str?"
+  proxy_password: "password?"
+  log_level: "list(debug|info|warning|error)?"

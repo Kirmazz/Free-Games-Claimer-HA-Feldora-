@@ -1,0 +1,4 @@
+# Le Supervisor passe cette valeur en ARG BUILD_FROM au Dockerfile.
+# Le tag est bumpé automatiquement par .github/workflows/bump-byparr.yaml
+build_from:
+  amd64: ghcr.io/thephaseless/byparr:3.0.4
