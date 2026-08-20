@@ -3,42 +3,50 @@ name: Bump Byparr
 on:
   schedule:
     - cron: "0 6 * * *" # tous les jours à 06:00 UTC
-  workflow_dispatch: {} # déclenchement manuel possible
+  workflow_dispatch: {}
 
 permissions:
   contents: write
 
+concurrency:
+  group: bump-byparr
+  cancel-in-progress: false
+
 jobs:
   bump:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      # Byparr publie de vraies Releases → releases/latest fonctionne
-      # (contrairement à feldorn, qui obligeait à lire l'API tags).
-      - name: Dernière release Byparr
-        id: upstream
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Bump si nouvelle version Byparr
         run: |
+          set -euo pipefail
+          DIR="byparr-fork"
+
+          # Byparr publie de vraies Releases -> releases/latest suffit
+          # (contrairement à feldorn qui oblige à lire l'API tags).
           TAG=$(gh api repos/ThePhaseless/Byparr/releases/latest --jq .tag_name)
-          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          VERSION="${TAG#v}"
+          echo "Amont  : tag=$TAG  version=$VERSION"
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Version amont invalide, on arrete."; exit 1
+          fi
 
-      - name: Version actuelle de l'add-on
-        id: current
-        run: |
-          CUR=$(grep -oP '^version:\s*"?\K[^"]+' byparr/config.yaml)
-          echo "version=$CUR" >> "$GITHUB_OUTPUT"
+          CURRENT=$(grep -E '^version:' "$DIR/config.yaml" \
+                    | sed -E 's/^version:[[:space:]]*"?([^"]+)"?.*/\1/')
+          echo "Add-on : version=$CURRENT"
+          if [ "$VERSION" = "$CURRENT" ]; then
+            echo "Deja a jour."; exit 0
+          fi
 
-      - name: Bump si nouvelle version
-        if: steps.upstream.outputs.version != steps.current.outputs.version
-        env:
-          NEW: ${{ steps.upstream.outputs.version }}
-        run: |
-          sed -i -E "s|^version:.*|version: \"${NEW}\"|" byparr/config.yaml
-          sed -i -E "s|(ghcr\.io/thephaseless/byparr):.*|\1:${NEW}|" byparr/build.yaml
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add byparr/config.yaml byparr/build.yaml
-          git commit -m "chore(byparr): bump to ${NEW}"
+          # L'image ghcr est taguee SANS prefixe v (metadata-action {{version}}).
+          sed -i -E "s/^version:.*/version: \"${VERSION}\"/" "$DIR/config.yaml"
+          sed -i -E "s#(ghcr\.io/thephaseless/byparr:)[^[:space:]\"]+#\1${VERSION}#" "$DIR/build.yaml"
+          echo "Bump $CURRENT -> $VERSION"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore: bump byparr $CURRENT -> $VERSION"
           git push
